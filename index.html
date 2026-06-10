@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TransLogix">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4f8ef7">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>TransLogix - Descargue</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0f1117;--bg2:#1a1d27;--bg3:#22263a;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --text:#f0f2f8;--text2:#8b92b0;--text3:#5a6180;
+  --blue:#4f8ef7;--blue2:#1a3a6e;
+  --green:#22c55e;--green2:#14532d;
+  --yellow:#f59e0b;--yellow2:#451a03;
+  --red:#ef4444;--red2:#450a0a;
+  --purple:#a855f7;
+  --radius:12px;--radius2:8px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overscroll-behavior:none;}
+body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;}
+
+/* ── AUTH ── */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:1.25rem;padding-top:calc(1.25rem + var(--safe-top));}
+.auth-card{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:2rem 1.5rem;width:100%;max-width:380px;}
+.auth-logo{text-align:center;margin-bottom:2rem;}
+.logo-icon{width:64px;height:64px;background:var(--blue);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:32px;}
+.auth-logo h1{font-size:24px;font-weight:800;letter-spacing:-0.5px;}
+.auth-logo p{color:var(--text2);font-size:13px;margin-top:4px;}
+.auth-error{background:var(--red2);border:1px solid var(--red);border-radius:var(--radius2);color:var(--red);font-size:13px;padding:10px 14px;margin-top:1rem;display:none;text-align:center;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+input,select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius2);color:var(--text);font-size:16px;padding:13px 14px;outline:none;transition:border-color 0.2s;appearance:none;-webkit-appearance:none;}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,0.15);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b92b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 18px;border-radius:var(--radius2);border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.15s;min-height:44px;touch-action:manipulation;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:active{background:#3d7ae8;transform:scale(0.97);}
+.btn-sm{padding:8px 14px;font-size:13px;min-height:36px;}
+.btn-xs{padding:5px 10px;font-size:12px;min-height:32px;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:active{background:var(--bg3);}
+.btn-danger{background:var(--red2);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+.btn-warning{background:var(--yellow2);color:var(--yellow);border:1px solid rgba(245,158,11,0.3);}
+.btn-success{background:var(--green2);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-full{width:100%;}
+
+/* ── APP LAYOUT ── */
+#app{display:none;min-height:100vh;min-height:100dvh;display:none;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 1rem;padding-top:var(--safe-top);height:calc(52px + var(--safe-top));background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.topbar-logo{font-weight:800;font-size:17px;letter-spacing:-0.3px;}.topbar-logo span{color:var(--blue);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.user-name{font-size:12px;color:var(--text2);display:none;}
+@media(min-width:480px){.user-name{display:block;}}
+
+/* ── BOTTOM NAV (mobile) ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:var(--safe-bottom);}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;border:none;background:none;transition:color 0.15s;min-height:52px;touch-action:manipulation;}
+.bnav-item.active{color:var(--blue);}
+.bnav-item .ico{font-size:22px;line-height:1;}
+.bnav-admin{display:none;}
+
+/* ── MAIN CONTENT ── */
+.main{padding:1rem;padding-bottom:calc(80px + var(--safe-bottom));max-width:800px;margin:0 auto;flex:1;}
+.page{display:none;}.page.active{display:block;}
+
+/* ── STEP INDICATOR ── */
+.step-bar{display:flex;align-items:center;gap:0;margin-bottom:1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.step-item{flex:1;text-align:center;padding:10px 8px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;position:relative;cursor:pointer;}
+.step-item.done{color:var(--green);background:rgba(34,197,94,0.06);}
+.step-item.active{color:var(--blue);background:var(--blue2);}
+.step-item:not(:last-child)::after{content:'›';position:absolute;right:-1px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;z-index:1;}
+.step-num{display:block;font-size:16px;margin-bottom:2px;}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:.875rem;}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.875rem;gap:8px;flex-wrap:wrap;}
+.card-title{font-size:15px;font-weight:700;}
+.card-sub{font-size:12px;color:var(--text2);margin-top:3px;}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
+@media(min-width:500px){.stats-grid{grid-template-columns:repeat(5,1fr);}}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem .5rem;text-align:center;}
+.stat-num{font-size:22px;font-weight:800;line-height:1;}
+.stat-label{font-size:10px;color:var(--text2);margin-top:3px;font-weight:500;}
+.stat-blue .stat-num{color:var(--blue);}.stat-green .stat-num{color:var(--green);}
+.stat-yellow .stat-num{color:var(--yellow);}.stat-red .stat-num{color:var(--red);}
+.stat-purple .stat-num{color:var(--purple);}
+
+/* ── SCAN AREA ── */
+.scan-zone{background:var(--bg3);border:2px solid var(--border2);border-radius:var(--radius);padding:1rem;margin-bottom:.875rem;}
+.scan-input-row{display:flex;gap:8px;}
+.scan-input-row input{flex:1;font-size:16px;padding:13px 14px;}
+.hint-text{font-size:11px;color:var(--text3);margin-top:6px;}
+#camera-container{position:relative;background:#000;border-radius:var(--radius);overflow:hidden;margin-bottom:.875rem;display:none;}
+#camera-video{width:100%;max-height:260px;object-fit:cover;display:block;}
+.camera-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70%;max-width:240px;height:100px;border:2px solid var(--blue);border-radius:8px;}
+@keyframes scanline{0%{top:8%;}50%{top:75%;}100%{top:8%;}}
+.scan-line{position:absolute;left:5%;right:5%;height:2px;background:rgba(79,142,247,0.8);animation:scanline 1.8s linear infinite;}
+#camera-canvas{display:none;}
+.cam-btn-row{display:flex;gap:8px;margin-bottom:.875rem;}
+
+/* ── FLASH ── */
+.result-flash{padding:12px 14px;border-radius:var(--radius2);font-size:14px;font-weight:600;margin-bottom:.75rem;display:none;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+.result-flash.success{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.35);}
+.result-flash.error{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.35);}
+.result-flash.warn{background:rgba(245,158,11,0.12);color:var(--yellow);border:1px solid rgba(245,158,11,0.35);}
+
+/* ── MODE PILL ── */
+.mode-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+.mode-free{background:rgba(168,85,247,0.15);color:var(--purple);border:1px solid rgba(168,85,247,0.3);}
+.mode-loaded{background:rgba(245,158,11,0.12);color:var(--yellow);border:1px solid rgba(245,158,11,0.3);}
+.mode-ok{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.badge-pending{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+.badge-partial{background:rgba(245,158,11,0.12);color:var(--yellow);border:1px solid rgba(245,158,11,0.3);}
+.badge-complete{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+.badge-blue{background:rgba(79,142,247,0.12);color:var(--blue);border:1px solid rgba(79,142,247,0.3);}
+.badge-extra{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+.badge-notincarga{background:rgba(168,85,247,0.12);color:var(--purple);border:1px solid rgba(168,85,247,0.3);}
+
+/* ── GUIA LIST (cards, no table) ── */
+.guia-list{display:flex;flex-direction:column;gap:6px;}
+.guia-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:10px 12px;display:flex;align-items:center;gap:10px;position:relative;}
+.guia-card.ok{border-left:3px solid var(--green);}
+.guia-card.partial{border-left:3px solid var(--yellow);}
+.guia-card.noref{border-left:3px solid var(--blue);}
+.guia-code{font-size:13px;font-weight:700;color:var(--blue);font-family:monospace;word-break:break-all;}
+.guia-meta{font-size:11px;color:var(--text2);margin-top:2px;}
+.guia-info{flex:1;min-width:0;}
+.guia-right{text-align:right;flex-shrink:0;}
+.guia-count{font-size:18px;font-weight:800;}
+.guia-del{background:transparent;border:none;color:var(--text3);cursor:pointer;padding:4px;font-size:16px;line-height:1;}
+.progress-bar{height:3px;background:var(--bg);border-radius:2px;overflow:hidden;margin-top:4px;}
+.progress-fill{height:100%;border-radius:2px;transition:width 0.3s;}
+
+/* ── SEARCH / FILTERS ── */
+.search-row{position:relative;margin-bottom:.75rem;}
+.search-row input{padding-left:36px;}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;}
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:.75rem;}
+.filter-row::-webkit-scrollbar{display:none;}
+.chip{display:inline-flex;align-items:center;gap:3px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--bg3);color:var(--text2);border:1px solid var(--border);cursor:pointer;white-space:nowrap;min-height:32px;touch-action:manipulation;}
+.chip.active{background:var(--blue2);color:var(--blue);border-color:rgba(79,142,247,0.4);}
+
+/* ── UPLOAD ── */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:2rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s;}
+.upload-zone:active,.upload-zone.drag{border-color:var(--blue);background:rgba(79,142,247,0.06);}
+.upload-zone input{display:none;}
+.upload-preview{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:12px 14px;font-size:13px;margin-top:.875rem;display:none;}
+
+/* ── COMPARATIVO ── */
+.compare-banner{border-radius:var(--radius);padding:12px 14px;margin-bottom:.875rem;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.compare-banner.ok{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);color:var(--green);}
+.compare-banner.warn{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);color:var(--yellow);}
+.compare-banner.error{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:var(--red);}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:none;align-items:flex-end;justify-content:center;padding:0;}
+@media(min-width:600px){.modal-bg{align-items:center;padding:1rem;}}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:1.5rem 1.25rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;padding-bottom:calc(1.5rem + var(--safe-bottom));}
+@media(min-width:600px){.modal{border-radius:16px;padding-bottom:1.5rem;}}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 1.25rem;}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:1.25rem;}
+
+/* ── USERS ── */
+.user-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:12px 14px;margin-bottom:8px;}
+.role-admin{background:rgba(168,85,247,0.15);color:var(--purple);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.role-operator{background:rgba(79,142,247,0.15);color:var(--blue);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+
+/* ── LOG ── */
+.log-entry{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.log-entry:last-child{border-bottom:none;}
+.log-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.log-dot.green{background:var(--green);}.log-dot.yellow{background:var(--yellow);}
+.log-dot.blue{background:var(--blue);}.log-dot.red{background:var(--red);}
+
+/* ── INSTALL BANNER ── */
+.install-banner{background:var(--blue2);border:1px solid rgba(79,142,247,0.4);border-radius:var(--radius);padding:12px 14px;margin-bottom:1rem;display:none;align-items:center;gap:10px;}
+.install-banner.show{display:flex;}
+.install-banner p{flex:1;font-size:13px;font-weight:500;color:var(--text);}
+
+/* ── UTILS ── */
+.flex{display:flex;}.gap-2{gap:8px;}.gap-3{gap:12px;}.items-center{align-items:center;}.justify-between{justify-content:space-between;}.flex-wrap{flex-wrap:wrap;}.mb-1{margin-bottom:.5rem;}.mb-2{margin-bottom:1rem;}.text-sm{font-size:13px;}.text-xs{font-size:11px;}.text-muted{color:var(--text2);}.text-center{text-align:center;}
+@keyframes flash{0%{background:rgba(79,142,247,0.2);}100%{background:transparent;}}
+.highlight{animation:flash 0.8s ease;}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--text3);}
+.empty-state .ico{font-size:40px;margin-bottom:.75rem;}
+.empty-state p{font-size:13px;}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:.5rem;}
+
+/* ── DESKTOP TABS ── */
+.desktop-tabs{display:none;}
+@media(min-width:600px){
+  .bottom-nav{display:none;}
+  .desktop-tabs{display:flex;gap:4px;}
+  .dtab{padding:7px 14px;border-radius:var(--radius2);font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);border:none;background:none;transition:all 0.15s;min-height:36px;}
+  .dtab.active{background:var(--blue2);color:var(--blue);}
+  .dtab:hover:not(.active){background:var(--bg3);}
+  .main{padding:1.25rem;padding-bottom:1.25rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ AUTH ═══════════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">🚛</div>
+      <h1>TransLogix</h1>
+      <p>Control de Descargue</p>
+    </div>
+    <div class="form-group">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="tu usuario" autocomplete="username" autocapitalize="none" />
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="contraseña" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">Ingresar</button>
+    <div class="auth-error" id="auth-error">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="flex items-center gap-3">
+      <div class="topbar-logo">Trans<span>Logix</span></div>
+      <!-- Desktop tabs -->
+      <div class="desktop-tabs">
+        <button class="dtab active" onclick="goPage('descargue')">📦 Descargue</button>
+        <button class="dtab" onclick="goPage('comparativo')">📊 Comparativo</button>
+        <button class="dtab" onclick="goPage('reportes')">📋 Actividad</button>
+        <button class="dtab dtab-admin" onclick="goPage('admin')" style="display:none">👤 Admin</button>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="user-name" id="user-display"></span>
+      <button class="btn btn-sm btn-ghost" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <!-- Install banner -->
+  <div class="install-banner" id="install-banner" style="margin:0.75rem 1rem 0;">
+    <span style="font-size:22px">📲</span>
+    <p>Instala la app para usarla sin internet y desde la pantalla de inicio.</p>
+    <button class="btn btn-sm btn-primary" id="install-btn" onclick="installApp()">Instalar</button>
+    <button class="btn btn-sm btn-ghost" onclick="dismissInstall()">✕</button>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- ── PAGE: DESCARGUE ── -->
+    <div id="page-descargue" class="page active">
+      <!-- Step bar -->
+      <div class="step-bar">
+        <div class="step-item active" id="step1" onclick="goPage('descargue')">
+          <span class="step-num">1️⃣</span>Pistoleas
+        </div>
+        <div class="step-item" id="step2" onclick="openUploadModal()">
+          <span class="step-num">2️⃣</span>Carga guía
+        </div>
+        <div class="step-item" id="step3" onclick="goPage('comparativo')">
+          <span class="step-num">3️⃣</span>Comparativo
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <div>
+          <h2 style="font-size:18px;font-weight:800;">Control de Descargue</h2>
+          <div style="margin-top:6px;">
+            <span class="mode-pill mode-free" id="mode-pill">Modo libre</span>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <select id="cliente-select" style="font-size:13px;padding:8px 32px 8px 10px;min-height:36px;">
+            <option value="proeslog">PROESLOG</option>
+            <option value="zaicargo">ZAI CARGO</option>
+          </select>
+          <button class="btn btn-sm btn-ghost" onclick="openUploadModal()">📂 Subir carga</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card stat-blue"><div class="stat-num" id="s-scanned">0</div><div class="stat-label">Pistoleados</div></div>
+        <div class="stat-card stat-green"><div class="stat-num" id="s-complete">0</div><div class="stat-label">Completos</div></div>
+        <div class="stat-card stat-yellow"><div class="stat-num" id="s-partial">0</div><div class="stat-label">Parciales</div></div>
+        <div class="stat-card stat-purple"><div class="stat-num" id="s-carga">---</div><div class="stat-label">En carga</div></div>
+        <div class="stat-card stat-red"><div class="stat-num" id="s-missing">---</div><div class="stat-label">Faltantes</div></div>
+      </div>
+
+      <!-- Scan card -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📱 Pistolear</div>
+            <div class="card-sub">Cámara, pistola USB o escribe el código</div>
+          </div>
+        </div>
+        <div id="result-flash" class="result-flash"></div>
+        <div id="camera-container">
+          <video id="camera-video" autoplay playsinline muted></video>
+          <div class="camera-overlay"><div class="scan-line"></div></div>
+          <canvas id="camera-canvas"></canvas>
+        </div>
+        <div class="cam-btn-row">
+          <button class="btn btn-sm btn-ghost" id="camera-btn" onclick="toggleCamera()" style="flex:1">📷 Activar cámara</button>
+          <button class="btn btn-sm btn-warning" onclick="clearScans()">🗑 Limpiar</button>
+        </div>
+        <div class="scan-zone">
+          <div class="scan-input-row">
+            <input type="text" id="scan-input" placeholder="Escanea o escribe la guía…"
+              onkeydown="if(event.key==='Enter'){processScan(this.value);this.select();}"
+              autocomplete="off" autocapitalize="characters" inputmode="text" />
+            <button class="btn btn-primary" onclick="processScan(document.getElementById('scan-input').value)">OK</button>
+          </div>
+          <div class="hint-text">La pistola USB funciona automáticamente cuando el cursor está en el campo.</div>
+        </div>
+      </div>
+
+      <!-- Guias list -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Guías pistoleadas</div>
+          <span id="scan-count" style="font-size:12px;color:var(--text2)">0 guías</span>
+        </div>
+        <div class="search-row">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Buscar guía, nombre, destino…" oninput="renderScanList()" />
+        </div>
+        <div class="filter-row">
+          <div class="chip active" id="f-all" onclick="setFilter('all')">Todas</div>
+          <div class="chip" id="f-complete" onclick="setFilter('complete')">✅ Completas</div>
+          <div class="chip" id="f-partial" onclick="setFilter('partial')">⚠️ Parciales</div>
+        </div>
+        <div id="scan-list"></div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: COMPARATIVO ── -->
+    <div id="page-comparativo" class="page">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <div>
+          <h2 style="font-size:18px;font-weight:800;">Comparativo</h2>
+          <p class="text-sm text-muted" id="compare-subtitle">Sube la carga digital para comparar</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-sm btn-ghost" onclick="openUploadModal()">📂 Cambiar carga</button>
+          <button class="btn btn-sm btn-success" onclick="exportComparativo()" id="btn-export" style="display:none">⬇️ Excel</button>
+        </div>
+      </div>
+      <div id="compare-content">
+        <div class="empty-state">
+          <div class="ico">📊</div>
+          <p>Primero pistoleas las guías, luego subes la carga digital, y aquí verás qué llegó, qué falta y qué sobra.</p>
+          <button class="btn btn-primary" style="margin-top:1.25rem" onclick="openUploadModal()">📂 Subir carga digital</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: REPORTES ── -->
+    <div id="page-reportes" class="page">
+      <h2 style="font-size:18px;font-weight:800;margin-bottom:1rem;">Actividad</h2>
+      <div class="card"><div id="log-container"><p class="text-muted text-sm">Sin actividad.</p></div></div>
+    </div>
+
+    <!-- ── PAGE: ADMIN ── -->
+    <div id="page-admin" class="page">
+      <div class="flex items-center justify-between mb-2">
+        <h2 style="font-size:18px;font-weight:800;">Usuarios</h2>
+        <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Crear</button>
+      </div>
+      <div class="card"><div id="user-list"></div></div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- Bottom nav (mobile) -->
+  <nav class="bottom-nav">
+    <button class="bnav-item active" id="bn-descargue" onclick="goPage('descargue')">
+      <span class="ico">📦</span>Descargue
+    </button>
+    <button class="bnav-item" id="bn-comparativo" onclick="goPage('comparativo')">
+      <span class="ico">📊</span>Comparativo
+    </button>
+    <button class="bnav-item" id="bn-reportes" onclick="goPage('reportes')">
+      <span class="ico">📋</span>Actividad
+    </button>
+    <button class="bnav-item bnav-admin" id="bn-admin" onclick="goPage('admin')" style="display:none">
+      <span class="ico">👤</span>Admin
+    </button>
+  </nav>
+</div><!-- /app -->
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+<!-- Upload modal -->
+<div class="modal-bg" id="upload-modal" onclick="if(event.target===this)closeUploadModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>📂 Subir Carga Digital</h3>
+    <p class="text-sm text-muted mb-2">El sistema cruzará automáticamente con lo que ya pistoleaste.</p>
+    <div class="form-group">
+      <label>Cliente</label>
+      <select id="upload-cliente">
+        <option value="proeslog">PROESLOG</option>
+        <option value="zaicargo">ZAI CARGO</option>
+      </select>
+    </div>
+    <div class="upload-zone" id="upload-zone"
+      onclick="document.getElementById('file-input').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="handleDrop(event)">
+      <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(this)" />
+      <div style="font-size:40px;margin-bottom:8px;">📊</div>
+      <p style="font-size:14px;font-weight:600;">Toca para seleccionar el Excel</p>
+      <p style="font-size:12px;color:var(--text2);margin-top:4px;">o arrastra el archivo aquí</p>
+    </div>
+    <div class="upload-preview" id="upload-preview"></div>
+    <div class="flex gap-2" style="margin-top:1.25rem;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeUploadModal()">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2" id="confirm-upload-btn" onclick="confirmUpload()" disabled>Cargar y comparar</button>
+    </div>
+  </div>
+</div>
+
+<!-- User modal -->
+<div class="modal-bg" id="user-modal" onclick="if(event.target===this)closeUserModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>👤 Crear Usuario</h3>
+    <div class="form-group"><label>Nombre completo</label><input type="text" id="new-name" placeholder="Carlos Pérez" /></div>
+    <div class="form-group"><label>Usuario (login)</label><input type="text" id="new-user" placeholder="carlos.perez" autocapitalize="none" /></div>
+    <div class="form-group"><label>Contraseña</label><input type="password" id="new-pass" placeholder="Mínimo 4 caracteres" /></div>
+    <div class="form-group">
+      <label>Rol</label>
+      <select id="new-role"><option value="operator">Operador</option><option value="admin">Administrador</option></select>
+    </div>
+    <div class="flex gap-2" style="margin-top:1.25rem;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeUserModal()">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2" onclick="createUser()">Crear usuario</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+<script>
+// ══════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════
+const DB_KEY='translogix_v4';
+function loadDB(){
+  try{const r=localStorage.getItem(DB_KEY);if(r)return JSON.parse(r);}catch(e){}
+  return{
+    users:[
+      {username:'admin',password:'admin123',name:'Administrador',role:'admin'},
+      {username:'kevin',password:'kevin123',name:'Kevin (Supervisor)',role:'admin'},
+      {username:'operador1',password:'op1234',name:'Operador 1',role:'operator'}
+    ],
+    scans:{},carga:null,cargaMeta:null,log:[]
+  };
+}
+function saveDB(){try{localStorage.setItem(DB_KEY,JSON.stringify(db));}catch(e){console.warn('Storage full');}}
+let db=loadDB();
+let currentUser=null;
+
+// ══════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim().toLowerCase();
+  const p=document.getElementById('login-pass').value;
+  const user=db.users.find(x=>x.username.toLowerCase()===u&&x.password===p);
+  if(!user){document.getElementById('auth-error').style.display='block';return;}
+  currentUser=user;
+  document.getElementById('auth-screen').style.display='none';
+  const appEl=document.getElementById('app');
+  appEl.style.display='flex';
+  document.getElementById('user-display').textContent=user.name;
+  if(user.role==='admin'){
+    document.querySelectorAll('.bnav-admin,.dtab-admin').forEach(el=>el.style.display='');
+  }
+  refreshAll();
+  addLog('blue',user.name+' inició sesión','');
+}
+function doLogout(){
+  currentUser=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('login-pass').value='';
+  stopCamera();
+}
+document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
+
+// ══════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════
+let currentPage='descargue';
+function goPage(p){
+  ['descargue','comparativo','reportes','admin'].forEach(x=>{
+    document.getElementById('page-'+x).classList.toggle('active',x===p);
+  });
+  document.querySelectorAll('.bnav-item').forEach(el=>{
+    el.classList.toggle('active',el.id==='bn-'+p);
+  });
+  document.querySelectorAll('.dtab').forEach(el=>{
+    el.classList.toggle('active',el.textContent.toLowerCase().includes(p==='descargue'?'desc':p==='comparativo'?'comp':p==='reportes'?'act':'admin'));
+  });
+  currentPage=p;
+  if(p==='comparativo')renderComparativo();
+  if(p==='reportes')renderLog();
+  if(p==='admin')renderUserList();
+  updateStepBar();
+}
+
+function updateStepBar(){
+  const hasScans=Object.keys(db.scans).length>0;
+  const hasCarga=!!db.carga;
+  document.getElementById('step1').className='step-item'+(hasScans?' done':' active');
+  document.getElementById('step2').className='step-item'+(hasCarga?' done':hasScans?' active':'');
+  document.getElementById('step3').className='step-item'+(hasCarga&&hasScans?' active':'');
+}
+
+// ══════════════════════════════════════
+//  SCANNING
+// ══════════════════════════════════════
+let activeFilter='all';
+
+function processScan(raw){
+  const code=raw.trim();
+  if(!code)return;
+  document.getElementById('scan-input').value='';
+  const guiaKey=normalizeGuia(code);
+  if(!db.scans[guiaKey]){
+    db.scans[guiaKey]={guia:guiaKey,rawCode:code,times:0,
+      firstAt:new Date().toISOString(),lastAt:null,
+      scannedBy:currentUser.username,scannedByName:currentUser.name,
+      nombre:null,destino:null,unidades:null};
+  }
+  db.scans[guiaKey].times++;
+  db.scans[guiaKey].lastAt=new Date().toISOString();
+  db.scans[guiaKey].scannedBy=currentUser.username;
+  db.scans[guiaKey].scannedByName=currentUser.name;
+  if(db.carga&&db.carga[guiaKey]){
+    const c=db.carga[guiaKey];
+    db.scans[guiaKey].nombre=c.nombre;
+    db.scans[guiaKey].destino=c.destino;
+    db.scans[guiaKey].unidades=c.unidades;
+  }
+  saveDB();
+  const sc=db.scans[guiaKey];
+  const uni=sc.unidades,times=sc.times;
+  if(uni!=null){
+    if(times>=uni){showFlash('success','✅ COMPLETO — '+guiaKey+' | '+(sc.nombre||'')+' | '+times+'/'+uni);addLog('green','Completo: '+guiaKey+' '+times+'/'+uni,currentUser.name);}
+    else{showFlash('warn','⚠️ PARCIAL — '+guiaKey+' | '+(sc.nombre||'')+' | '+times+'/'+uni);addLog('yellow','Parcial: '+guiaKey+' '+times+'/'+uni,currentUser.name);}
+  }else{
+    showFlash('success','📦 Registrado — '+guiaKey+' x'+times+(db.carga?' (no en carga)':''));
+    addLog('blue','Pistoleado: '+guiaKey+' x'+times,currentUser.name);
+  }
+  // Haptic feedback
+  if(navigator.vibrate)navigator.vibrate(times>=1?(uni&&times>=uni?[100,50,100]:50):50);
+  refreshAll();
+  highlightCard(guiaKey);
+}
+
+function normalizeGuia(code){
+  if(db.carga){
+    if(db.carga[code])return code;
+    const up=code.toUpperCase();
+    for(const k in db.carga){if(k.toUpperCase()===up)return k;}
+    const nums=code.replace(/\D/g,'');
+    if(nums){for(const k in db.carga){if(k.replace(/\D/g,'')===nums)return k;}}
+    for(const k in db.carga){if(code.includes(k)||k.includes(code))return k;}
+  }
+  return code.toUpperCase();
+}
+
+function clearScans(){
+  if(!confirm('¿Limpiar todos los escaneos? La carga digital se mantiene.'))return;
+  db.scans={};saveDB();refreshAll();
+  addLog('red','Sesión de escaneos limpiada',currentUser.name);
+}
+
+// ══════════════════════════════════════
+//  STATS & TABLE
+// ══════════════════════════════════════
+function refreshStats(){
+  const scans=Object.values(db.scans);
+  const total=scans.length;
+  let complete=0,partial=0;
+  scans.forEach(s=>{
+    if(s.unidades!=null){if(s.times>=s.unidades)complete++;else partial++;}
+    else complete++;
+  });
+  document.getElementById('s-scanned').textContent=total;
+  document.getElementById('s-complete').textContent=complete;
+  document.getElementById('s-partial').textContent=partial;
+  if(db.carga){
+    const cTotal=Object.keys(db.carga).length;
+    const missing=Object.values(db.carga).filter(g=>{const s=db.scans[g.guia];return !s||s.times<(g.unidades||1);}).length;
+    document.getElementById('s-carga').textContent=cTotal;
+    document.getElementById('s-missing').textContent=missing;
+  }else{
+    document.getElementById('s-carga').textContent='---';
+    document.getElementById('s-missing').textContent='---';
+  }
+  updateModePill();
+}
+
+function updateModePill(){
+  const pill=document.getElementById('mode-pill');
+  if(!db.carga){pill.className='mode-pill mode-free';pill.textContent='Sin carga digital';return;}
+  const missing=Object.values(db.carga).filter(g=>{const s=db.scans[g.guia];return !s||s.times<(g.unidades||1);}).length;
+  if(missing===0){pill.className='mode-pill mode-ok';pill.textContent='✅ Todo completo';}
+  else{pill.className='mode-pill mode-loaded';pill.textContent='⏳ '+missing+' pendiente'+(missing>1?'s':'');}
+}
+
+function setFilter(f){
+  activeFilter=f;
+  ['all','complete','partial'].forEach(x=>document.getElementById('f-'+x).classList.toggle('active',x===f));
+  renderScanList();
+}
+
+function renderScanList(){
+  const container=document.getElementById('scan-list');
+  const search=document.getElementById('search-input').value.toLowerCase();
+  let rows=Object.values(db.scans).sort((a,b)=>new Date(b.lastAt||b.firstAt)-new Date(a.lastAt||a.firstAt));
+  if(search)rows=rows.filter(s=>s.guia.toLowerCase().includes(search)||(s.nombre||'').toLowerCase().includes(search)||(s.destino||'').toLowerCase().includes(search));
+  if(activeFilter==='complete')rows=rows.filter(s=>s.unidades==null||s.times>=s.unidades);
+  if(activeFilter==='partial')rows=rows.filter(s=>s.unidades!=null&&s.times<s.unidades);
+  document.getElementById('scan-count').textContent=Object.keys(db.scans).length+' guía'+(Object.keys(db.scans).length!==1?'s':'');
+  if(!rows.length){
+    container.innerHTML='<div class="empty-state"><div class="ico">🔍</div><p>'+(Object.keys(db.scans).length===0?'Empieza a pistoliar — no necesitas la carga digital primero':'Sin resultados para la búsqueda')+'</p></div>';
+    return;
+  }
+  container.innerHTML='<div class="guia-list">'+rows.map(s=>{
+    const uni=s.unidades,times=s.times;
+    const pct=uni?Math.min(100,Math.round((times/uni)*100)):100;
+    const barColor=uni==null?'var(--blue)':times>=uni?'var(--green)':'var(--yellow)';
+    let cls='noref',badge='<span class="badge badge-blue">Sin ref</span>';
+    if(uni!=null&&times>=uni){cls='ok';badge='<span class="badge badge-complete">✅ Completo</span>';}
+    else if(uni!=null){cls='partial';badge='<span class="badge badge-partial">⚠️ '+(uni-times)+' faltan</span>';}
+    const dest=s.destino?'<span class="badge badge-blue" style="font-size:10px">'+s.destino+'</span>':'';
+    return '<div class="guia-card '+cls+'" data-guia="'+s.guia+'" id="gc-'+s.guia.replace(/[^a-z0-9]/gi,'_')+'">'
+      +'<div class="guia-info">'
+      +'<div class="guia-code">'+s.guia+'</div>'
+      +'<div class="guia-meta">'+(s.nombre||'Sin nombre en carga')+' '+dest+'</div>'
+      +'<div style="margin-top:4px;display:flex;gap:6px;align-items:center">'+badge+'<span style="font-size:10px;color:var(--text3)">'+(s.scannedByName||'')+'</span></div>'
+      +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>'
+      +'</div>'
+      +'<div class="guia-right">'
+      +'<div class="guia-count" style="color:'+barColor+'">'+times+(uni!=null?'<span style="font-size:11px;color:var(--text3)">/'+uni+'</span>':'')+'</div>'
+      +'<button class="guia-del" onclick="removeScan(\''+s.guia+'\')">✕</button>'
+      +'</div>'
+      +'</div>';
+  }).join('')+'</div>';
+}
+
+function removeScan(guia){
+  if(!confirm('¿Eliminar el escaneo de '+guia+'?'))return;
+  delete db.scans[guia];saveDB();refreshAll();
+}
+
+function highlightCard(guia){
+  const id='gc-'+guia.replace(/[^a-z0-9]/gi,'_');
+  const el=document.getElementById(id);
+  if(el){el.classList.add('highlight');el.scrollIntoView({behavior:'smooth',block:'nearest'});setTimeout(()=>el.classList.remove('highlight'),800);}
+}
+
+function refreshAll(){refreshStats();renderScanList();updateStepBar();}
+
+// ══════════════════════════════════════
+//  UPLOAD / EXCEL
+// ══════════════════════════════════════
+let pendingCarga=null;
+function openUploadModal(){document.getElementById('upload-modal').classList.add('open');}
+function closeUploadModal(){
+  document.getElementById('upload-modal').classList.remove('open');
+  pendingCarga=null;
+  document.getElementById('upload-preview').style.display='none';
+  document.getElementById('confirm-upload-btn').disabled=true;
+  document.getElementById('file-input').value='';
+}
+function handleDrop(e){e.preventDefault();document.getElementById('upload-zone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)readExcel(f);}
+function handleFile(inp){const f=inp.files[0];if(f)readExcel(f);}
+
+function readExcel(file){
+  const cliente=document.getElementById('upload-cliente').value;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      const parsed=cliente==='proeslog'?parseProeslog(rows):parseZaicargo(rows);
+      if(!parsed.length){alert('No se detectaron guías en el archivo. Verifica las columnas.');return;}
+      pendingCarga={cliente,guias:parsed,fileName:file.name,loadedAt:new Date().toISOString()};
+      const prev=document.getElementById('upload-preview');
+      prev.style.display='block';
+      prev.innerHTML='<strong style="color:var(--green)">'+parsed.length+' guías detectadas</strong> en <em>'+file.name+'</em>';
+      document.getElementById('confirm-upload-btn').disabled=false;
+    }catch(err){alert('Error al leer el archivo: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseProeslog(rows){
+  const map={};
+  rows.forEach(row=>{
+    let guia=String(row['GUIA EMPRESA']||'').trim();
+    if(!guia||guia==='GUIA EMPRESA')return;
+    const nombre=String(row['NOMBRE']||'').trim();
+    const destino=String(row['DESTINO']||'').trim();
+    const unidades=parseInt(row['UNIDADES']||1)||1;
+    const peso=parseFloat(row['PESO']||0);
+    const contra=parseFloat(row['CONTRA ENTREGAS']||row['VALOR']||0);
+    if(!map[guia])map[guia]={guia,nombre,destino,unidades,peso,contraentrega:contra,tipo:'proeslog'};
+    else map[guia].unidades+=unidades;
+  });
+  return Object.values(map);
+}
+function parseZaicargo(rows){
+  const map={};
+  rows.forEach(row=>{
+    let guia=String(row['GUIA CX ']||row['GUIA CX']||row[' ']||'').trim();
+    if(!guia||guia.length<5)return;
+    const nombre=String(row['NOMBRE']||'').trim();
+    const destino=String(row['CIUDAD']||'').trim();
+    const unidades=parseInt(row['UNIDADES']||1)||1;
+    if(!map[guia])map[guia]={guia,nombre,destino,unidades,tipo:'zaicargo'};
+    else map[guia].unidades+=unidades;
+  });
+  return Object.values(map);
+}
+
+function confirmUpload(){
+  if(!pendingCarga)return;
+  const guiaMap={};
+  pendingCarga.guias.forEach(g=>{guiaMap[g.guia]=g;});
+  db.carga=guiaMap;
+  db.cargaMeta={cliente:pendingCarga.cliente,fileName:pendingCarga.fileName,loadedAt:pendingCarga.loadedAt,loadedBy:currentUser.username};
+  // Re-enrich existing scans
+  const oldScans={...db.scans};
+  Object.values(oldScans).forEach(s=>{
+    const matched=findInCarga(s.rawCode||s.guia);
+    if(matched){
+      const nk=matched.guia;
+      const updated=Object.assign({},s,{guia:nk,nombre:matched.nombre,destino:matched.destino,unidades:matched.unidades});
+      if(nk!==s.guia)delete db.scans[s.guia];
+      db.scans[nk]=updated;
+    }
+  });
+  saveDB();closeUploadModal();refreshAll();
+  addLog('blue','Carga subida: '+pendingCarga.fileName+' ('+pendingCarga.guias.length+' guías)',currentUser.name);
+  goPage('comparativo');
+}
+
+function findInCarga(code){
+  if(!db.carga)return null;
+  if(db.carga[code])return db.carga[code];
+  const up=code.toUpperCase();
+  for(const k in db.carga){if(k.toUpperCase()===up)return db.carga[k];}
+  const nums=code.replace(/\D/g,'');
+  if(nums){for(const k in db.carga){if(k.replace(/\D/g,'')===nums)return db.carga[k];}}
+  for(const k in db.carga){if(code.includes(k)||k.includes(code))return db.carga[k];}
+  return null;
+}
+
+// ══════════════════════════════════════
+//  COMPARATIVO
+// ══════════════════════════════════════
+function renderComparativo(){
+  const container=document.getElementById('compare-content');
+  if(!db.carga){
+    container.innerHTML='<div class="empty-state"><div class="ico">📊</div><p>Primero pistoleas las guías, luego subes la carga digital para ver el comparativo.</p><button class="btn btn-primary" style="margin-top:1.25rem" onclick="openUploadModal()">📂 Subir carga digital</button></div>';
+    document.getElementById('compare-subtitle').textContent='Sube la carga digital para generar el comparativo';
+    document.getElementById('btn-export').style.display='none';
+    return;
+  }
+  const cargaList=Object.values(db.carga);
+  let ok=[],partial=[],missing=[],extra=[];
+  cargaList.forEach(g=>{
+    const s=db.scans[g.guia];const sc=s?s.times:0;const uni=g.unidades||1;
+    if(sc===0)missing.push(Object.assign({},g,{escaneadas:0}));
+    else if(sc>=uni)ok.push(Object.assign({},g,{escaneadas:sc}));
+    else partial.push(Object.assign({},g,{escaneadas:sc}));
+  });
+  Object.values(db.scans).forEach(s=>{
+    if(!db.carga[s.guia])extra.push({guia:s.guia,nombre:s.nombre||'---',destino:s.destino||'---',unidades:'---',escaneadas:s.times});
+  });
+  document.getElementById('compare-subtitle').textContent=(db.cargaMeta?db.cargaMeta.fileName:'Carga')+' · '+cargaList.length+' guías';
+  document.getElementById('btn-export').style.display='';
+
+  let bannerClass,bannerEmoji,bannerMsg;
+  if(missing.length===0&&partial.length===0&&extra.length===0){
+    bannerClass='ok';bannerEmoji='✅';bannerMsg='Descargue completo — todas las '+ok.length+' guías llegaron';
+  }else if(missing.length>0||partial.length>0){
+    bannerClass='error';bannerEmoji='🚨';bannerMsg=missing.length+' no llegaron · '+partial.length+' incompletas';
+  }else{
+    bannerClass='warn';bannerEmoji='⚠️';bannerMsg=extra.length+' guía(s) pistoleadas no están en la carga';
+  }
+
+  const statsHtml='<div class="stats-grid" style="margin-bottom:1rem;">'
+    +'<div class="stat-card stat-green"><div class="stat-num">'+ok.length+'</div><div class="stat-label">Completas</div></div>'
+    +'<div class="stat-card stat-yellow"><div class="stat-num">'+partial.length+'</div><div class="stat-label">Parciales</div></div>'
+    +'<div class="stat-card stat-red"><div class="stat-num">'+missing.length+'</div><div class="stat-label">No llegaron</div></div>'
+    +'<div class="stat-card stat-purple"><div class="stat-num">'+extra.length+'</div><div class="stat-label">No en carga</div></div>'
+    +'</div>';
+
+  const makeCard=(g,colorVar,badge,showPct)=>{
+    const pct=g.unidades&&g.unidades!=='---'?Math.min(100,Math.round((g.escaneadas/(g.unidades))*100)):100;
+    return '<div class="guia-card" style="border-left:3px solid '+colorVar+';margin-bottom:6px;">'
+      +'<div class="guia-info">'
+      +'<div class="guia-code" style="color:'+colorVar+'">'+g.guia+'</div>'
+      +'<div class="guia-meta">'+g.nombre+(g.destino&&g.destino!=='---'?' · '+g.destino:'')+'</div>'
+      +'<div style="margin-top:4px">'+badge+'</div>'
+      +(showPct?'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+colorVar+'"></div></div>':'')
+      +'</div>'
+      +'<div class="guia-right">'
+      +'<div style="font-size:18px;font-weight:800;color:'+colorVar+'">'+g.escaneadas+(g.unidades&&g.unidades!=='---'?'<span style="font-size:11px;color:var(--text3)">/'+g.unidades+'</span>':'')+'</div>'
+      +'</div></div>';
+  };
+
+  let sections='';
+  if(ok.length){sections+='<div class="section-label">✅ Completas ('+ok.length+')</div>'+ok.map(g=>makeCard(g,'var(--green)','<span class="badge badge-complete">Completo</span>',false)).join('');}
+  if(partial.length){sections+='<div class="section-label" style="margin-top:1rem">⚠️ Parciales ('+partial.length+')</div>'+partial.map(g=>makeCard(g,'var(--yellow)','<span class="badge badge-partial">Faltan '+(g.unidades-g.escaneadas)+'</span>',true)).join('');}
+  if(missing.length){sections+='<div class="section-label" style="margin-top:1rem">🚨 No llegaron ('+missing.length+')</div>'+missing.map(g=>makeCard(g,'var(--red)','<span class="badge badge-extra">No llegó</span>',false)).join('');}
+  if(extra.length){sections+='<div class="section-label" style="margin-top:1rem">🔵 No en carga ('+extra.length+')</div>'+extra.map(g=>makeCard(g,'var(--purple)','<span class="badge badge-notincarga">No en carga</span>',false)).join('');}
+
+  container.innerHTML='<div class="compare-banner '+bannerClass+'"><span style="font-size:20px">'+bannerEmoji+'</span><span>'+bannerMsg+'</span></div>'+statsHtml+sections;
+}
+
+function exportComparativo(){
+  if(!db.carga)return;
+  const rows=[];
+  Object.values(db.carga).forEach(g=>{
+    const s=db.scans[g.guia];const sc=s?s.times:0;const uni=g.unidades||1;
+    rows.push({'GUIA':g.guia,'NOMBRE':g.nombre,'DESTINO':g.destino,'UNIDADES ESPERADAS':uni,'UNIDADES PISTOLEADAS':sc,'DIFERENCIA':sc-uni,'ESTADO':sc===0?'No llegó':sc>=uni?'Completo':'Parcial','OPERADOR':s?s.scannedByName:'','ULTIMO SCAN':s?s.lastAt:''});
+  });
+  Object.values(db.scans).forEach(s=>{
+    if(!db.carga[s.guia])rows.push({'GUIA':s.guia,'NOMBRE':s.nombre||'','DESTINO':s.destino||'','UNIDADES ESPERADAS':'N/A','UNIDADES PISTOLEADAS':s.times,'DIFERENCIA':'N/A','ESTADO':'No en carga','OPERADOR':s.scannedByName,'ULTIMO SCAN':s.lastAt});
+  });
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Comparativo');
+  XLSX.writeFile(wb,'comparativo_'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
+// ══════════════════════════════════════
+//  CAMERA / QR SCAN
+// ══════════════════════════════════════
+let cameraStream=null,cameraActive=false,scanCooldown=false;
+async function toggleCamera(){
+  if(cameraActive){stopCamera();return;}
+  try{
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+    document.getElementById('camera-video').srcObject=cameraStream;
+    document.getElementById('camera-container').style.display='block';
+    document.getElementById('camera-btn').textContent='⏹ Detener cámara';
+    cameraActive=true;scanLoop();
+  }catch(e){showFlash('error','No se pudo acceder a la cámara: '+e.message);}
+}
+function stopCamera(){
+  if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());
+  cameraStream=null;
+  document.getElementById('camera-container').style.display='none';
+  document.getElementById('camera-btn').textContent='📷 Activar cámara';
+  cameraActive=false;
+}
+function scanLoop(){
+  if(!cameraActive)return;
+  const v=document.getElementById('camera-video'),c=document.getElementById('camera-canvas');
+  if(v.readyState===v.HAVE_ENOUGH_DATA){
+    c.width=v.videoWidth;c.height=v.videoHeight;
+    const ctx=c.getContext('2d');ctx.drawImage(v,0,0,c.width,c.height);
+    const img=ctx.getImageData(0,0,c.width,c.height);
+    const qr=typeof jsQR!=='undefined'&&jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+    if(qr&&qr.data&&!scanCooldown){scanCooldown=true;processScan(qr.data);setTimeout(()=>scanCooldown=false,2000);return;}
+    if(!scanCooldown&&typeof Quagga!=='undefined'){
+      Quagga.decodeSingle({decoder:{readers:['code_128_reader','ean_reader','code_39_reader']},locate:true,src:c.toDataURL()},res=>{
+        if(res&&res.codeResult&&!scanCooldown){scanCooldown=true;processScan(res.codeResult.code);setTimeout(()=>scanCooldown=false,2000);}
+      });
+    }
+  }
+  setTimeout(scanLoop,350);
+}
+
+// ══════════════════════════════════════
+//  LOG
+// ══════════════════════════════════════
+function addLog(color,msg,user){
+  db.log.push({ts:new Date().toISOString(),color,msg,user});
+  if(db.log.length>300)db.log=db.log.slice(-300);
+  saveDB();
+}
+function renderLog(){
+  const c=document.getElementById('log-container');
+  const logs=[...db.log].reverse().slice(0,80);
+  if(!logs.length){c.innerHTML='<p class="text-muted text-sm">Sin actividad.</p>';return;}
+  c.innerHTML=logs.map(l=>{
+    const d=new Date(l.ts);
+    const t=d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+    const dt=d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit'});
+    return '<div class="log-entry"><div class="log-dot '+l.color+'"></div><div style="flex:1"><div class="text-sm">'+l.msg+'</div><div class="text-xs text-muted">'+(l.user||'')+'</div></div><div style="font-size:11px;color:var(--text3);white-space:nowrap">'+dt+' '+t+'</div></div>';
+  }).join('');
+}
+
+// ══════════════════════════════════════
+//  USERS
+// ══════════════════════════════════════
+function openUserModal(){document.getElementById('user-modal').classList.add('open');}
+function closeUserModal(){document.getElementById('user-modal').classList.remove('open');}
+function createUser(){
+  const name=document.getElementById('new-name').value.trim();
+  const user=document.getElementById('new-user').value.trim().toLowerCase();
+  const pass=document.getElementById('new-pass').value;
+  const role=document.getElementById('new-role').value;
+  if(!name||!user||!pass){alert('Completa todos los campos');return;}
+  if(pass.length<4){alert('Contraseña mínimo 4 caracteres');return;}
+  if(db.users.find(u=>u.username===user)){alert('Ese usuario ya existe');return;}
+  db.users.push({username:user,password:pass,name,role});
+  saveDB();closeUserModal();renderUserList();
+  addLog('blue','Usuario creado: '+name+' ('+role+')',currentUser.name);
+  ['new-name','new-user','new-pass'].forEach(id=>document.getElementById(id).value='');
+}
+function deleteUser(u){
+  if(u===currentUser.username){alert('No puedes eliminarte a ti mismo');return;}
+  if(!confirm('¿Eliminar este usuario?'))return;
+  db.users=db.users.filter(x=>x.username!==u);saveDB();renderUserList();
+}
+function renderUserList(){
+  document.getElementById('user-list').innerHTML=db.users.map(u=>'<div class="user-item"><div><strong style="font-size:14px">'+u.name+'</strong><small style="color:var(--text2);display:block;font-size:12px">@'+u.username+'</small></div><div class="flex items-center gap-2"><span class="'+(u.role==='admin'?'role-admin':'role-operator')+'">'+(u.role==='admin'?'Admin':'Operador')+'</span>'+(u.username!=='admin'?'<button class="btn btn-xs btn-danger" onclick="deleteUser(\''+u.username+'\')">Eliminar</button>':'')+'</div></div>').join('');
+}
+
+// ══════════════════════════════════════
+//  FLASH
+// ══════════════════════════════════════
+function showFlash(type,msg){
+  const el=document.getElementById('result-flash');
+  el.className='result-flash '+type;el.textContent=msg;el.style.display='block';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',4500);
+}
+
+// ══════════════════════════════════════
+//  PWA INSTALL
+// ══════════════════════════════════════
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-banner').classList.add('show');
+});
+async function installApp(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  const{outcome}=await deferredPrompt.userChoice;
+  if(outcome==='accepted')document.getElementById('install-banner').classList.remove('show');
+  deferredPrompt=null;
+}
+function dismissInstall(){
+  document.getElementById('install-banner').classList.remove('show');
+  deferredPrompt=null;
+}
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+// ══════════════════════════════════════
+//  SERVICE WORKER
+// ══════════════════════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(()=>console.log('SW registered')).catch(()=>{});
+}
+
+// Keyboard shortcut: any key focuses scan input on descargue page
+document.addEventListener('keydown',e=>{
+  const input=document.getElementById('scan-input');if(!input)return;
+  if(currentPage!=='descargue')return;
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
+  if(e.key.length===1&&!e.ctrlKey&&!e.metaKey)input.focus();
+});
+</script>
+</body>
+</html>
